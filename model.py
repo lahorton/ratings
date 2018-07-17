@@ -15,6 +15,11 @@ db = SQLAlchemy()
 class User(db.Model):
     """User of ratings website."""
 
+    def __repr__(self):
+        """provide helpful representation when printed"""
+
+        return f"<User user_id={self.user_id} email={self.email}>"
+
     __tablename__ = "users"
 
     user_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
@@ -24,7 +29,42 @@ class User(db.Model):
     zipcode = db.Column(db.String(15), nullable=True)
 
 
-# Put your Movie and Rating model classes here.
+class Movie(db.Model):
+    """Movie information"""
+
+    def __repr__(self):
+        """provide helpful representation when printed"""
+
+        return f"<Movie movie_id={self.movie_id} title={self.title}>"
+
+
+    __tablename__ = "movies"
+
+    movie_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    released_at = db.Column(db.DateTime, nullable=True)
+    imdb_url = db.Column(db.String, nullable=True)
+
+
+class Rating(db.Model):
+    """Movie rating information"""
+
+    def __repr__(self):
+        """provide helpful representation when printed"""
+
+        return f"<Rating rating_id={self.rating_id} score={self.score}>"
+
+
+    __tablename__ = "ratings"
+
+    rating_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    movie_id = db.Column(db.Integer, db.ForeignKey("movies.movie_id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    score = db.Column(db.Integer, nullable=False)
+
+    user = db.relationship("User", backref=db.backref("ratings", order_by=rating_id))
+    movie = db.relationship("Movie", backref=db.backref("ratings", order_by=rating_id))
+
 
 
 ##############################################################################
