@@ -1,5 +1,8 @@
 """Movie Ratings."""
+from flask import (Flask, render_template, redirect, request,
+                   flash, session)
 
+from model import User, Rating, Movie, connect_to_db, db
 from jinja2 import StrictUndefined
 
 from flask import Flask
@@ -22,7 +25,15 @@ app.jinja_env.undefined = StrictUndefined
 @app.route('/')
 def index():
     """Homepage."""
-    return "<html><body>Placeholder for the homepage.</body></html>"
+    return render_template("homepage.html")
+
+
+@app.route('/users')
+def user_list():
+    """show list of users"""
+
+    users= User.query.all()
+    return render_template("user_list.html", users=users)
 
 
 if __name__ == "__main__":
