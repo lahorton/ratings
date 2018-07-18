@@ -2,6 +2,8 @@
 from flask import (Flask, render_template, redirect, request,
                    flash, session)
 
+from datetime import datetime
+
 from model import User, Rating, Movie, connect_to_db, db
 from jinja2 import StrictUndefined
 
@@ -44,22 +46,63 @@ def user_list():
     users = User.query.all()
     return render_template("user_list.html", users=users)
 
-@app.route('/user-info')
-def user_info_page():
+@app.route('/movies')
+def movie_list():
+    """show list of movies linked to info"""
+
+    movies = Movie.query.order_by(Movie.title).all()
+
+    return render_template("movie_list.html", movies=movies)
+
+
+@app.route('/movies/<int:movie_id>')
+def movie_id_page(movie_id):
+    """provides movie information"""
+
+    movie = Movie.query.get(movie_id)
+    released_at = movie.released_at.strftime('%d-%b-%Y')
+    user_id = session["user_id"]
+    score = Rating.query.filter(Rating.user_id == user_id, Rating.movie_id == movie_id).first()
+
+    return render_template("movie_info.html",
+                           movie=movie,
+                           user_id=user_id,
+                           released_at=released_at,
+                           score=score)
+
+
+@app.route('/movies/<int:movie_id>', methods=["POST"])
+def update_movie_score(movie_id):
+    """updates user movie score"""
+
+    new_score = int(request.form.get("movie_score"))
+    user_id = session["user_id"]
+
+    rating = Rating.query.filter(Rating.user_id == user_id, Rating.movie_id == movie_id).first()
+
+    if rating:
+        rating.score = new_score
+        db.session.add(rating)
+        # rating.score = new_score
+        # db.session.append(rating.score)
+        flash("Your score has been updated.")
+
+    else:
+        rating = Rating(user_id=user_id, movie_id=movie_id, score=new_score)
+        db.session.add(rating)
+        flash("Your score has been added.")
+
+    db.session.commit()
+    return redirect(f'/movies/{movie_id}')
+
+
+@app.route('/users/<user_id>')
+def user_info_page(user_id):
     """connect user to desired user info page"""
- 
-    user_id = request.args.get("user_id")
-    user = User.query.filter(User.user_id == user_id).one()
-    user_ratings = Rating.query.filter(Rating.user_id == user_id).all()
-    movie_title, movie_rating = SELECT Movie.title, Rating.score FROM Movie JOIN Rating ON (Movie.movie_id = Rating.movie_id) WHERE (Rating.user_id = user_id)
 
-    # for user in users:
-    #     user_age = user.age
-    #     user_zipcode = user.zipcode
+    user = User.query.get(user_id)
 
-
-
-    # user_movie_ratings =
+    return render_template("user_info.html", user=user)
 
 
 @app.route('/login')
@@ -81,7 +124,7 @@ def login_user():
     if user:
         session["user_id"] = user.user_id
         flash("Welcome back. You're logged in.")
-        return redirect("/")
+        return redirect(f"/users/{user.user_id}")
     else:
         flash("This email address is not recognized, please log in or register.")
         return redirect("/login")
