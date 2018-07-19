@@ -46,6 +46,7 @@ def user_list():
     users = User.query.all()
     return render_template("user_list.html", users=users)
 
+
 @app.route('/movies')
 def movie_list():
     """show list of movies linked to info"""
@@ -59,16 +60,25 @@ def movie_list():
 def movie_id_page(movie_id):
     """provides movie information"""
 
-    movie = Movie.query.get(movie_id)
-    released_at = movie.released_at.strftime('%d-%b-%Y')
     user_id = session["user_id"]
-    score = Rating.query.filter(Rating.user_id == user_id, Rating.movie_id == movie_id).first()
+
+    movie = db.session.query(Movie.movie_id,
+                             Movie.title,
+                             Movie.released_at,
+                             Movie.imdb_url,
+                             Rating.score).join(Rating).filter((Rating.user_id == user_id) & (Rating.movie_id == movie_id)).first()
+
+    print(movie)
+    movie_ratings = Rating.query.filter(movie_id == movie_id)
+    print(movie_ratings)
+
+    released_at = movie.released_at.strftime('%d-%b-%Y')
 
     return render_template("movie_info.html",
                            movie=movie,
                            user_id=user_id,
                            released_at=released_at,
-                           score=score)
+                           movie_ratings=movie_ratings)
 
 
 @app.route('/movies/<int:movie_id>', methods=["POST"])

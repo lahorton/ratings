@@ -5,18 +5,18 @@
 
   <ul>
   	<p>Information about the movie:</p>
-  	Title: {{ movie.title }}<br>
+  	Title: {{ movie[1] }}<br>
   	Release Date: {{ released_at }}<br>
-    IMDB URL: <a href={{ movie.imdb_url }}> {{ movie.imdb_url }}</a><br>
-    Your score for this movie was {{ score.score }}<br>
+    IMDB URL: <a href={{ movie[3] }}> {{ movie[3] }}</a><br>
+    Your score for this movie was {{ movie[4] }}<br>
     Update your score if you want: 
-    <form action="{{ movie.movie_id }}" method="POST">
+    <form action="{{ movie[0] }}" method="POST">
       <input type="text" name="movie_score" value="Score 1-5">
       <input type="submit" id="movie_score_submit">
     </form><br>
-    {% for i in movie.ratings %}
+    {% for i in movie_ratings %}
       <li>
-          User: {{ i.user.user_id }} : Score: {{ i.score }}
+          User: {{ i.user_id }} : Score: {{ i.score }}
       </li>
     {% endfor %}
   </ul>
